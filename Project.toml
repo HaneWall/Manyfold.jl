@@ -1,0 +1,13 @@
+name = "Manyfold"
+uuid = "c97d8de6-f08c-4bca-986e-6113a2397c35"
+authors = ["Hannes Wallner"]
+version = "1.0.0-DEV"
+
+[compat]
+julia = "1.10"
+
+[extras]
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[targets]
+test = ["Test"]
