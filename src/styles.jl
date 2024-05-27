@@ -32,5 +32,11 @@ function plot_matrix_coords(Proj::AbstractMatrix{T}, idx_x::Integer, X_label::Ab
   return fig
 end
 
+function save_figs(arr; name="tmp")
+  for (idx, fig) in enumerate(arr)
+    save("./Figures/" * "$(name)" * "_$(idx).pdf", fig, pt_per_unit=1)
+  end
+end
 
-export plot3D_data, plot_matrix_coords
+
+export plot3D_data, plot_matrix_coords, save_figs
