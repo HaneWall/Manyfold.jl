@@ -60,10 +60,11 @@ Decomposes the right/row stochastic matrix `P` into its eigenvalues
 and eigenvecors. Since `P` is stochastic the first eigenvalue is 1 and 
 the first eigenvector is the trivial one, therefore we skip them. 
 
-We return a diagonal matrix Λs containing descending eigenvalues and 
+We return a diagonal matrix Λs containing descending eigenvalues/singularvalues and 
 corresponding columnwise ordered eigenvectors matrix Vs.
 """
-function decompose(P::AbstractMatrix{<:Real}, dim::Integer; skipfirst=true, alg=:kry_eigen)
+function decompose(P::AbstractMatrix{<:Real}, dim::Integer;
+  skipfirst=true, alg=:kry_eigen)
   if alg == :eigen
     Λs, Vs = eigsolver(P, dim; skipfirst)
   elseif alg == :svd
@@ -73,6 +74,25 @@ function decompose(P::AbstractMatrix{<:Real}, dim::Integer; skipfirst=true, alg=
   elseif alg == :kry_svd
     Λs, Vs = kry_svdsolver(P, dim; skipfirst)
   end
+  return Λs, Vs
+end
+
+function decompose_sym(K::AbstractMatrix{<:Real}, dim::Integer;
+  skipfirst=true, alg=:kry_eigen)
+  sums = sum(K, dims=2)
+  P = Diagonal(1.0 ./ vec(sqrt.(sums)))
+  rmul!(lmul!(P, K), P)
+  K_sym = Symmetric(K)
+  if alg == :eigen
+    Λs, Vs = eigsolver(K_sym, dim; skipfirst)
+  elseif alg == :svd
+    Λs, Vs = svdsolver(K_sym, dim; skipfirst)
+  elseif alg == :kry_eigen
+    Λs, Vs = kry_eigsolver(K_sym, dim; skipfirst)
+  elseif alg == :kry_svd
+    Λs, Vs = kry_svdsolver(K_sym, dim; skipfirst)
+  end
+  lmul!(P, Vs)
   return Λs, Vs
 end
 
@@ -122,7 +142,7 @@ function svdsolver(P::AbstractMatrix{<:Real}, dim::Integer; skipfirst)
 end
 
 function kry_svdsolver(P::AbstractMatrix{<:Real}, dim::Integer; skipfirst)
-  σs, lvecs, rvecs, _ = KrylovKit.svdsolve(P, dim + 1, :LR)
+  σs, lvecs, _ = KrylovKit.svdsolve(P, dim + 1, :LR)
   l = size(P)[1]
   Vs = zeros(Float64, l, dim)
   idx_s = skipfirst ? range(2, dim + 1) : range(1, dim)
@@ -133,4 +153,4 @@ function kry_svdsolver(P::AbstractMatrix{<:Real}, dim::Integer; skipfirst)
   return Λs, Vs
 end
 
-export gaussian_kernel, normalize_to_right_stochastic!, normalize_to_handle_density!, decompose
+export gaussian_kernel, normalize_to_right_stochastic!, normalize_to_handle_density!, decompose, decompose_sym
