@@ -24,14 +24,10 @@ end
 α = 0.5 .. Fokker Planck
 α = 1.0 .. density is taken care of (Laplace-Beltrami)
 
-
-Notice that if `K` is symmetric it does not matter if we sum over
-the columns (dims=1) or rows (dims=2). However summation over columns is faster,
-since Julia is column based.
 """
 function normalize_to_handle_density!(K::AbstractMatrix{<:Real}; α=0.0)
   sums = sum(K, dims=2)
-  P⁻ᵅ = Diagonal(1.0 ./ (vec(sums) .^ α))
+  P⁻ᵅ = Diagonal(1.0 ./ (vec(sums))) .^ α
   rmul!(lmul!(P⁻ᵅ, K), P⁻ᵅ)
 end
 
@@ -42,9 +38,6 @@ end
 Takes a kernel matrix `K` and normalizes the rows to sum up to 1. 
 Therefore we can reinterpret the matrix as a Markovian Matrix, 
 that is right stochastic.
-Notice that if `K` is symmetric it does not matter if we sum over
-the columns (dims=1) or rows (dims=2). However summation over columns is faster,
-since Julia is column based. Notice that we now lose 
 """
 function normalize_to_right_stochastic!(K::AbstractMatrix{<:Real})
   sums = sum(K, dims=2)
@@ -80,7 +73,7 @@ end
 function decompose_sym(K::AbstractMatrix{<:Real}, dim::Integer;
   skipfirst=true, alg=:kry_eigen)
   sums = sum(K, dims=2)
-  P = Diagonal(1.0 ./ vec(sqrt.(sums)))
+  P = sqrt.(Diagonal(1.0 ./ vec(sums)))
   rmul!(lmul!(P, K), P)
   K_sym = Symmetric(K)
   if alg == :eigen
