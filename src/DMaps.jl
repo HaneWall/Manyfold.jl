@@ -54,16 +54,19 @@ function transform(dmap::DiffusionMap, X_train::AbstractMatrix{T}, X_oos::Abstra
   if alg == :nystrom
     K_new = KernelFunctions.kernelmatrix(dmap.k, ColVecs(X_oos), ColVecs(X_train))
     if !(isapprox(dmap.α, 0.0))
-      P⁻²ᵅ = Diagonal(1.0 ./ (vec(sum(K_new, dims=2)))) .^ (2 * dmap.α)
-      lmul!(P⁻²ᵅ, K_new)
+      p⁻ᵅ = Diagonal(1.0 ./ (vec(sum(K_new, dims=2)))) .^ (dmap.α)
+      lmul!(p⁻ᵅ, K_new)
+      P⁻ᵅ = Diagonal(1.0 ./ (vec(sum(dmap.K_m, dims=2)))) .^ (dmap.α)
+      rmul!(K_new, P⁻ᵅ)
     end
     normalize_to_right_stochastic!(K_new)
     Ψ = zeros(T, dmap.d, size(X_oos)[2])
-    for dmap_idx in axes(Ψ, 1)
-      for oos_idx in axes(Ψ, 2)
-        Ψ[dmap_idx, oos_idx] = 1 / dmap.Λs[dmap_idx, dmap_idx]^dmap.t .* dot(K_new[oos_idx, :], dmap.Vs[:, dmap_idx])
-      end
-    end
+    # for dmap_idx in axes(Ψ, 1)
+    #   for oos_idx in axes(Ψ, 2)
+    #     Ψ[dmap_idx, oos_idx] = 1 / dmap.Λs[dmap_idx, dmap_idx]^dmap.t .* dot(K_new[oos_idx, :], dmap.Vs[:, dmap_idx])
+    #   end
+    # end
+    Ψ = transpose(K_new * dmap.Vs * dmap.Λs^(-1 * dmap.t))
     return Ψ
   end
 end

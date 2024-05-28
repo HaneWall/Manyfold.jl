@@ -1,22 +1,4 @@
 """
-    gaussian_kernel(x_i, x_j, eps::Real)
-
-    eps ... width of gaussian (distance Obervation X)
-    x_i, x_j ... columns of data matrix X
-
-Creates a symmetric kernel matrix `K` based on a gaussian kernel and data values x ∈ X.
-In applications we use StatsBase.pairwise() function that iterates over
-the columns of the observation data X.
-Since the gaussian_kernel is symmetric (as all diffusion kernels), we can
-give the kwarg symmetric=true to pairwise in order to only compute the 
-lower half of the kernel matrix and fill out the rest automatically.
-"""
-function gaussian_kernel(x_i, x_j, ε::Real)
-  d² = sum((x_i - x_j) .^ 2)
-  return exp(-d² / ε^2)
-end
-
-"""
     normalize_to_handle_density!(K::AbstractMatrix{<:Real}; α=0.0, symmetric=true)
 
 
