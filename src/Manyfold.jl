@@ -1,6 +1,8 @@
 module Manyfold
 
-using CairoMakie, LinearAlgebra, StatsBase, Random, KrylovKit, KernelFunctions
+using CairoMakie, LinearAlgebra, StatsBase
+using Random, KrylovKit, KernelFunctions
+using NearestNeighbors
 
 include("DMaps.jl")
 include("utils.jl")
