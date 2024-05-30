@@ -96,19 +96,13 @@ latent space for each of the n-samples. From these k nearest neighbors we
 can look at their respective high dimensional data in the ambient space
 
 This approach is for example used by Sandstede [https://arxiv.org/pdf/2112.15159]
+
+We handle this problem by an divide and conquer approach for readibility.
 """
-function preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T}; k::Integer=8) where {T<:Real}
-  d, n = size(Y_oos)
-  D, N = size(dmap.X_train)
-  knn_idxs, knn_points = NearestNeighbors.knn(KDTree(dmap.Map), Y_oos, k, true)
-  ambient_knn_points_cube = [@views dmap.X_train[:, idx_set] for idx_set in knn_idxs]
-  # initial guess of the coefficents is just the arithmetic mean
-  coeff_matrix = 1 / k * ones(T, n, k)
-  preim_Y_oos = zeros(T, D, n)
-  for (idx_points, ambient_knn_points_matrix) in enumerate(ambient_knn_points_cube)
-    for (idx, point) in enumerate(eachcol(ambient_knn_points_matrix))
-      preim_Y_oos[:, idx_points] += coeff_matrix[idx, :] * point
-    end
+function preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T}; k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2])) where {S<:Integer,T<:Real}
+  preim_Y_oos = zeros(T, size(dmap.X_train)[1], size(Y_oos)[2])
+  for (point_idx, Y_oos_point) in enumerate(eachcol(Y_oos))
+    preim_Y_oos[:, point_idx] .= preim_knn(dmap, Y_oos_point; k, embed_dim)
   end
   return preim_Y_oos
 end
@@ -117,10 +111,17 @@ end
 """
 preim_knn(dmap::DiffusionMap, Y_oos, k)
 """
-function preim_knn(dmap::DiffusionMap, Y_oos::AbstractVector{T}; k::Integer=8) where {T<:Real}
-  d = length(Y_oos)
-  knn_idxs, knn_points = NearestNeighbors.knn(KDTree(dmap.Map), Y_oos, k, true)
-  ambient_points = [@views dmap.X_train[:, knn_idxs]]
+function preim_knn(dmap::DiffusionMap, Y_oos::AbstractVector{T}; k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2])) where {S<:Integer,T<:Real}
+  knn_idxs, _ = NearestNeighbors.knn(BruteTree(dmap.Map[:, embed_dim]'), Y_oos, k, true)
+  ambient_points = @views dmap.X_train[:, knn_idxs]
+  #initial guess of the coefficients is the arithemtic mean
+  coeffs = 1 / k * ones(T, k)
+  preim_Y_oos_point = zeros(T, size(dmap.X_train)[1])
+  #for now we just take the arithmetic mean, later optimization problem
+  for (idx_ambient_point, ambient_point) in enumerate(eachcol(ambient_points))
+    preim_Y_oos_point .= preim_Y_oos_point .+ coeffs[idx_ambient_point] .* ambient_point
+  end
+  return preim_Y_oos_point
 end
 
-export fit, DiffusionMap, transform
+export fit, DiffusionMap, transform, preim_knn
