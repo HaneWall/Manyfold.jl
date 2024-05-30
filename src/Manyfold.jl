@@ -5,6 +5,7 @@ using Random, KrylovKit, KernelFunctions
 using NearestNeighbors
 
 include("DMaps.jl")
+include("GeometricHarmonics.jl")
 include("utils.jl")
 include("datasets.jl")
 include("styles.jl")

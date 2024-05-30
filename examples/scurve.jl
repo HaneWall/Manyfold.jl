@@ -1,6 +1,5 @@
 using Manyfold, Random
 
-
 rng = MersenneTwister(1)
 rng_oos = MersenneTwister(1234)
 
@@ -8,7 +7,7 @@ rng_oos = MersenneTwister(1234)
 
 kernel = GaussianKernel(ε)
 
-n = 6000
+n = 13000
 noise = 0.03
 X, X_label = scurve(n, noise; segments=n, rng=rng)
 
@@ -19,7 +18,7 @@ X_oos, X_label_oos = scurve(n_oos, noise; segments=n, rng=rng_oos)
 # # X_oos = [-1.0 1.0 -1.5; 0.0 1.0 0.0; 1.0 1.0 1.5]'
 # # X_label_oos = [1, 0, -1]
 #
-dmap = fit(DiffusionMap, X, kernel; α=1.0, d=6, alg=:kry_eigen, conj=true)
+dmap = fit(DiffusionMap, X, kernel; α=1.0, d=10, alg=:kry_eigen, conj=true)
 
 psi_new = transform(dmap, X_oos)
 

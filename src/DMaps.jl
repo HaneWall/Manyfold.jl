@@ -120,9 +120,7 @@ preim_knn(dmap::DiffusionMap, Y_oos, k)
 function preim_knn(dmap::DiffusionMap, Y_oos::AbstractVector{T}; k::Integer=8) where {T<:Real}
   d = length(Y_oos)
   knn_idxs, knn_points = NearestNeighbors.knn(KDTree(dmap.Map), Y_oos, k, true)
-  ambient_points = [@views dmap.X_train[:, knn_idxs]
-  
-  return nothing
+  ambient_points = [@views dmap.X_train[:, knn_idxs]]
 end
 
 export fit, DiffusionMap, transform
