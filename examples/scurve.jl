@@ -20,7 +20,7 @@ X_oos, X_label_oos = scurve(n_oos, noise; segments=n, rng=rng_oos)
 #
 dmap = fit(DiffusionMap, X, kernel; α=1.0, d=10, alg=:kry_eigen, conj=true)
 
-psi_new = transform(dmap, X_oos)
+psi_new = Manyfold.transform(dmap, X_oos)
 
 fig_data = plot3D_data(X, X_label)
 fig_data_oos = plot3D_data(X_oos, X_label_oos)

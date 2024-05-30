@@ -52,8 +52,15 @@ function decompose(P::AbstractMatrix{<:Real}, dim::Integer;
   return Λs, Vs
 end
 
+
+
+"""
+    decompose_sym(K::AbstractMatrix{<:Real}, dim::Intger; skipfirst=true, alg=:kry_eigen)
+Introduces a change of basis in order for symmetrification of the kernelmatrix `K`.
+The new matrix has the same eigenvalues
+"""
 function decompose_sym(K::AbstractMatrix{<:Real}, dim::Integer;
-  skipfirst=true, alg=:kry_eigen)
+  skipfirst=true, alg=:kry_svd)
   sums = sum(K, dims=2)
   P = sqrt.(Diagonal(1.0 ./ vec(sums)))
   rmul!(lmul!(P, K), P)

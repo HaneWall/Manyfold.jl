@@ -3,11 +3,11 @@ using Random
 
 
 rng = MersenneTwister(1)
-ε = 1.0
+ε = 1.5
 
 kernel = GaussianKernel(ε)
 
-n = 7000
+n = 2000
 noise = 0.2
 X, X_label = swiss_roll(n, noise; segments=n, rng=rng)
 

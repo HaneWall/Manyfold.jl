@@ -99,10 +99,14 @@ This approach is for example used by Sandstede [https://arxiv.org/pdf/2112.15159
 
 We handle this problem by an divide and conquer approach for readibility.
 """
-function preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T}; k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2])) where {S<:Integer,T<:Real}
+function preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T};
+  k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2]),
+  alg=:arithmetic) where {S<:Integer,T<:Real}
+
   preim_Y_oos = zeros(T, size(dmap.X_train)[1], size(Y_oos)[2])
+  #TODO there is free food here for parallelization
   for (point_idx, Y_oos_point) in enumerate(eachcol(Y_oos))
-    preim_Y_oos[:, point_idx] .= preim_knn(dmap, Y_oos_point; k, embed_dim)
+    preim_Y_oos[:, point_idx] .= preim_knn(dmap, Y_oos_point; k, embed_dim, alg)
   end
   return preim_Y_oos
 end
@@ -111,17 +115,32 @@ end
 """
 preim_knn(dmap::DiffusionMap, Y_oos, k)
 """
-function preim_knn(dmap::DiffusionMap, Y_oos::AbstractVector{T}; k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2])) where {S<:Integer,T<:Real}
+function preim_knn(dmap::DiffusionMap, Y_oos::AbstractVector{T};
+  k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2]),
+  alg=:arithmetic) where {S<:Integer,T<:Real}
+
   knn_idxs, _ = NearestNeighbors.knn(BruteTree(dmap.Map[:, embed_dim]'), Y_oos, k, true)
   ambient_points = @views dmap.X_train[:, knn_idxs]
   #initial guess of the coefficients is the arithemtic mean
   coeffs = 1 / k * ones(T, k)
   preim_Y_oos_point = zeros(T, size(dmap.X_train)[1])
   #for now we just take the arithmetic mean, later optimization problem
-  for (idx_ambient_point, ambient_point) in enumerate(eachcol(ambient_points))
-    preim_Y_oos_point .= preim_Y_oos_point .+ coeffs[idx_ambient_point] .* ambient_point
+  if alg == :arithmetic
+    preim_Y_oos_point = mean(ambient_points, dims=2)
+  elseif alg == :conv_hull
+    #TODO implement optimization problem to get coeffs
+    for (idx_ambient_point, ambient_point) in enumerate(eachcol(ambient_points))
+      preim_Y_oos_point .= preim_Y_oos_point .+ coeffs[idx_ambient_point] .* ambient_point
+    end
+  else
+    nothing
   end
   return preim_Y_oos_point
 end
+
+# function _knn_convex_hull_min(dmap::DiffusionMap, coeffs::AbstractVector{T}, ambient_points::AbstractMatrix(T), preim_)
+#   nothing
+# end
+
 
 export fit, DiffusionMap, transform, preim_knn
