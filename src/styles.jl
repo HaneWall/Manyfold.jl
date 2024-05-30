@@ -19,6 +19,21 @@ function plot3D_data(X::AbstractMatrix{T}, X_oos::AbstractMatrix{T}, X_label::Ab
   return fig
 end
 
+
+function plot3D_data(X::AbstractMatrix{T}, X_oos::AbstractMatrix{T}; backend=:CairoMakie) where {T<:Real}
+  if backend == :CairoMakie
+    CairoMakie.activate!(type="png")
+  else
+    GLMakie.activate!()
+  end
+  fig = Figure(size=(400, 400))
+  ax = Axis3(fig[1, 1])
+  scatter!(ax, X_oos, color=(:black, 0.1), strokewidth=1, strokecolor=:black)
+  scatter!(ax, X, color=(:crimson, 0.4))
+  return fig
+end
+
+
 function plot_matrix_coords(Proj::AbstractMatrix{T}, idx_x::Integer, X_label::AbstractVector{S}) where {S<:Real,T<:Real}
   CairoMakie.activate!(type="png")
   fig = Figure(
@@ -65,6 +80,9 @@ function plot_matrix_coords(Proj::AbstractMatrix{T}, Proj_oos::AbstractMatrix{T}
   end
   return fig
 end
+
+
+
 
 function save_figs(arr; name="tmp")
   for (idx, fig) in enumerate(arr)

@@ -21,14 +21,15 @@ However one should be careful at comparing the restriction to Nyström, since we
 the choosen embedding but not all eigenfunctions of the diffusion map.
 """
 function fit(::Type{GeometricHarmonics}, X_train::AbstractMatrix{T}, Y_target::AbstractMatrix{T}, kernel::S;
-  α::Real=1.0, d=10, alg=:kry_eigen) where {S<:Kernel,T<:Real}
+  α::Real=1.0, d=10, alg=:eigen) where {S<:Kernel,T<:Real}
   K_new = KernelFunctions.kernelmatrix(kernel, ColVecs(X_train))
   if !(isapprox(α, 0))
     p⁻ᵅ = Diagonal(1.0 ./ (vec(sum(K_new, dims=2)))) .^ (α)
     lmul!(p⁻ᵅ, K_new)
   end
   normalize_to_right_stochastic!(K_new)
-  Λs, Vs = decompose(K_new, d; skipfirst=true, alg)
+
+  Λs, Vs = decompose(K_new, d; skipfirst=false, alg)
   Map = Vs * Λs^(-1) * transpose(Vs) * Y_target
   return GeometricHarmonics{T}(d, α, X_train, Y_target, kernel, K_new, Λs, Vs, Map)
 end

@@ -79,25 +79,22 @@ function decompose_sym(K::AbstractMatrix{<:Real}, dim::Integer;
 end
 
 function eigsolver(P::AbstractMatrix{<:Real}, dim::Integer; skipfirst)
-  eigen_decomposition = eigen(P)
+  eigen_decomposition = eigen(P, sortby=abs)
   eig_vals = eigen_decomposition.values
   eig_vecs = eigen_decomposition.vectors
   # in order to sort eigvals we have to neglect the imaginary part
   # which can be introduced due to numerical errors 
 
-  for val in eig_vals
-    if isa(val, Complex)
-      eig_vals = real(eig_vals)
-    end
-  end
+  eig_vals = real.(eig_vals)
 
   if skipfirst
-    order_idx = sortperm(Float64.(eig_vals), rev=true)[2:dim+1]
+    eig_vals = reverse(eig_vals)[2:dim+1]
+    Vs = real.(reverse(eig_vecs, dims=2))[:, 2:dim+1]
   else
-    order_idx = sortperm(Float64.(eig_vals), rev=true)[1:dim]
+    eig_vals = reverse(eig_vals)[1:dim]
+    Vs = real.(reverse(eig_vecs, dims=2))[:, 1:dim]
   end
-  Λs = Diagonal(eig_vals[order_idx])
-  Vs = real.(eig_vecs[:, order_idx])
+  Λs = Diagonal(eig_vals)
   return Λs, Vs
 end
 

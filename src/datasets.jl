@@ -19,7 +19,7 @@ function scurve(n::Int=1000, noise::Real=0.03; segments=1,
   rng::AbstractRNG=default_rng())
   t = 3π * (rand(rng, n) .- 0.5)
   x = sin.(t)
-  y = 2rand(rng, n)
+  y = 2 * rand(rng, n)
   z = sign.(t) .* (cos.(t) .- 1)
   height = 30 * rand(rng, n, 1)
   X = [x y z] + noise * randn(n, 3)
