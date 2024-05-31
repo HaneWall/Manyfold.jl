@@ -1,6 +1,3 @@
-using CairoMakie
-
-
 function plot3D_data(X::AbstractMatrix{T}, X_label::AbstractVector{S}) where {S<:Real,T<:Real}
   CairoMakie.activate!(type="png")
   fig = Figure(size=(400, 400))

@@ -78,11 +78,6 @@ dimensional latent space, how can we get X_new in the
 high dimesional ambient space?
 This is the classic ill-defined preimage problem.
 """
-function preim_double_diffusionmap(dmap::DiffusionMap, Y_oos::AbstractMatrix{T};
-  kernel::S=dmap.k, n_eigenpairs::Integer=6, alg=:latent_harmonic) where {S<:Kernel,T<:Real}
-  doubledmap = fit(DiffusionMap, Y_oos, kernel; α=1.0, t=1, alg=:kry_eigen, conj=true, d=n_eigenpairs)
-end
-
 
 """
     preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T}; k=8)
@@ -121,7 +116,7 @@ function preim_knn(dmap::DiffusionMap, Y_oos::AbstractVector{T};
 
   knn_idxs, _ = NearestNeighbors.knn(BruteTree(dmap.Map[:, embed_dim]'), Y_oos, k, true)
   ambient_points = @views dmap.X_train[:, knn_idxs]
-  #initial guess of the coefficients is the arithemtic mean
+  #initial guess of the coefficients is the arithmetic mean
   coeffs = 1 / k * ones(T, k)
   preim_Y_oos_point = zeros(T, size(dmap.X_train)[1])
   #for now we just take the arithmetic mean, later optimization problem
