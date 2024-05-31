@@ -81,7 +81,18 @@ function plot_matrix_coords(Proj::AbstractMatrix{T}, Proj_oos::AbstractMatrix{T}
   return fig
 end
 
-
+function plot2D_data(X::AbstractMatrix{T}, X_oos::AbstractMatrix{T}; backend=:CairoMakie) where {T<:Real}
+  if backend == :CairoMakie
+    CairoMakie.activate!(type="png")
+  else
+    GLMakie.activate!()
+  end
+  fig = Figure(size=(400, 400))
+  ax = Axis(fig[1, 1])
+  scatter!(ax, X_oos, color=(:black, 0.1), strokewidth=1, strokecolor=:black)
+  scatter!(ax, X, color=(:crimson, 0.4))
+  return fig
+end
 
 
 function save_figs(arr; name="tmp")
@@ -91,4 +102,4 @@ function save_figs(arr; name="tmp")
 end
 
 
-export plot3D_data, plot_matrix_coords, save_figs
+export plot3D_data, plot_matrix_coords, save_figs, plot2D_data

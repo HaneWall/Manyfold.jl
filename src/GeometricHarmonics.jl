@@ -12,6 +12,20 @@ struct GeometricHarmonics{T<:Real}
 end
 
 
+struct MultiScaleGeometricHarmonics{T<:Real}
+  d::Integer
+  α::T
+  X_train::AbstractMatrix{T}
+  Y_target::AbstractMatrix{T}
+  k::Kernel
+  # following quantities will we determined and are not free to choose
+  K::AbstractMatrix{T}
+  Λs::AbstractMatrix{T}
+  Vs::AbstractMatrix{T}
+  Map::AbstractMatrix{T}
+end
+
+
 """
     fit()
 
@@ -26,9 +40,8 @@ function fit(::Type{GeometricHarmonics}, X_train::AbstractMatrix{T}, Y_target::A
   if !(isapprox(α, 0))
     p⁻ᵅ = Diagonal(1.0 ./ (vec(sum(K_new, dims=2)))) .^ (α)
     lmul!(p⁻ᵅ, K_new)
+    normalize_to_right_stochastic!(K_new)
   end
-  normalize_to_right_stochastic!(K_new)
-
   Λs, Vs = decompose(K_new, d; skipfirst=false, alg)
   Map = Vs * Λs^(-1) * transpose(Vs) * Y_target
   return GeometricHarmonics{T}(d, α, X_train, Y_target, kernel, K_new, Λs, Vs, Map)
@@ -38,11 +51,13 @@ end
 """
     predict(GH::GeometricHarmonics, X_oos)
 Uses the learned GeometricHarmonics model to fit new out of sample data X_oos to predict 
-on Y_target living space
+on Y_target living space.
 """
 function predict(GH::GeometricHarmonics, X_oos)
   K_new = KernelFunctions.kernelmatrix(GH.k, ColVecs(X_oos), ColVecs(GH.X_train))
-  normalize_to_right_stochastic!(K_new)
+  if !(isapprox(GH.α, 0))
+    normalize_to_right_stochastic!(K_new)
+  end
   return K_new * GH.Map
 end
 
