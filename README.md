@@ -18,5 +18,5 @@ Might add other nonlinear dimensionality reduction methods in future versions to
 to ambient space 
 - (Multi Scale) Geometric Harmonics for lifting and restriction
 
-## Acknowdledgement 
-Package is inspired by ManifoldLearning.jl and Datafold (wonderful Python package)
+## Acknowledgments
+- package is inspired by ManifoldLearning.jl and Datafold (wonderful Python package)
