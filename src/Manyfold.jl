@@ -2,7 +2,7 @@ module Manyfold
 
 using CairoMakie, LinearAlgebra, StatsBase
 using Random, KrylovKit, KernelFunctions
-using NearestNeighbors, GLMakie
+using NearestNeighbors
 
 include("DMaps.jl")
 include("GeometricHarmonics.jl")
