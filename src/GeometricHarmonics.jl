@@ -1,5 +1,6 @@
 """
     struct  GeometricHarmonics{T<:Real}
+using CairoMakie: project_polygon
 Is an object that allows us to jump between the ambient and latent space.
 From the "restriction" standpoint this is an alternative to the natural
 Nyström extension. From the "lifting" standpoint this is an alternative
@@ -57,12 +58,12 @@ function fit(::Type{GeometricHarmonics}, X_train::AbstractMatrix{T}, Y_train::Ab
 end
 
 
-"""
+""" 
     predict(GH::GeometricHarmonics, X_oos)
 Uses the learned GeometricHarmonics model to fit new out of sample data X_oos to predict 
 on Y_train living space.
 """
-function predict(GH::GeometricHarmonics, X_oos)
+function predict(GH::GeometricHarmonics, X_oos::AbstractMatrix{T}) where {T<:Real}
   K_new = KernelFunctions.kernelmatrix(GH.k, ColVecs(X_oos), ColVecs(GH.X_train))
   return K_new * GH.Map
 end
@@ -71,20 +72,55 @@ end
 """
     struct MultiScaleGeometricHarmonics
 
-Introduction of multiscale GeometricHarmonics.
+Introduction of multiscale GeometricHarmonics. General idea is to
+incorparate multiple length scales / band widths ε into our kernel.
+Therefore we get better approximations for the extension of the domain.
 """
 struct MultiScaleGeometricHarmonics{T<:Real}
   X_train::AbstractMatrix{T}
   Y_train::AbstractMatrix{T}
   error::T
   δ::T
-  k::Kernel
+  ε::T
   # following quantities will we determined and are not free to choose
-  d::Integer
-  K::AbstractMatrix{T}
-  Λs::AbstractMatrix{T}
-  Vs::AbstractMatrix{T}
-  Map::AbstractMatrix{T}
+  ks::AbstractArray{<:Kernel}
+  Maps::AbstractArray{T}
 end
 
-export GeometricHarmonics, fit, predict
+"""
+    fit(::Type{MultiScaleGeometricHarmonics}, X_train::AbstractMatrix{T}, Y_train::AbstractMatrix{T};
+  δ::T=1e-5, ε_init::T=1.0, error::T=1e-10, l_max::Integer=7, μ::T=2.0, alg=:eigen) where {T<:Real}
+
+TBW
+"""
+function fit(::Type{MultiScaleGeometricHarmonics}, X_train::AbstractMatrix{T}, Y_train::AbstractMatrix{T};
+  δ::T=1e-5, ε_init::T=1.0, error::T=1e-10, l_max::Integer=7, μ::T=2.0, alg=:eigen) where {T<:Real}
+  # for now empty array of kernelfunctions
+  ks = KernelFunctions.Kernel[]
+  Maps = zeros(T, size(Y_train)[1], size(Y_train)[2], l_max)
+  ε = ε_init
+  Y_rolling_approx = copy(Y_train)
+  for l in 1:l_max
+    k_new = KernelFunctions.with_lengthscale(KernelFunctions.SqExponentialKernel(), ε)
+    push!(ks, k_new)
+    Map = @views Maps[:, :, l]
+    K_mat = kernelmatrix(k_new, ColVecs(X_train))
+    Λs, Vs = decompose_δ(K_mat, δ; skipfirst=false, alg)
+    proj_y = Vs * transpose(Vs) * Y_rolling_approx
+    Map .= Vs * Λs^(-1) * transpose(Vs) * Y_rolling_approx
+    Y_rolling_approx .-= proj_y
+    ε /= μ
+  end
+  return MultiScaleGeometricHarmonics{T}(X_train, Y_train, error, δ, ε_init, ks, Maps)
+end
+
+function predict(MGH::MultiScaleGeometricHarmonics, X_oos::AbstractMatrix{T}) where {T<:Real}
+  Y_oos = zeros(T, size(X_oos)[2], size(MGH.Y_train)[2])
+  for (idx, k) in enumerate(MGH.ks)
+    K_mat = KernelFunctions.kernelmatrix(k, ColVecs(X_oos), ColVecs(MGH.X_train))
+    Y_oos .+= K_mat * MGH.Maps[:, :, idx]
+  end
+  return Y_oos
+end
+
+export GeometricHarmonics, MultiScaleGeometricHarmonics, fit, predict
