@@ -17,3 +17,6 @@ Might add other nonlinear dimensionality reduction methods in future versions to
 - k-nearest neighbor method for lifting (using NearestNeighbor.jl) from latent space 
 to ambient space 
 - (Multi Scale) Geometric Harmonics for lifting and restriction
+
+## Acknowdledgement 
+Package is inspired by ManifoldLearning.jl and Datafold (wonderful Python package)
