@@ -5,11 +5,12 @@
 ## Manifold Learning Package in Julia
 Another manifold learning package in Julia. In this package 
 we for now focus on nonlinear methods specifically the Diffusion Maps algorithm.
+Might add other nonlinear dimensionality reduction methods in future versions to justify "Many"fold.
 
 ## Statement of Need:
-1. Missing / not working / wrong Diffusion Map Algorthm in (no longer maintained?) ManifoldLearning.jl
+1. missing / not working / wrong Diffusion Map algorithm in (no longer maintained?) ManifoldLearning.jl
 2. first Julia Package to implement out of sample methods to map between Diffusion Map Coordinates and Ambient Space
-3. Lifting and Restriction formalism to "equation free methods"
+3. provides lifting and restriction formalism to equation free methods with Diffusion Maps
 
 ## Implemented Diffusion Map Methods
 - Nyström extension for restriction for out of sample data
