@@ -1,7 +1,27 @@
-# Manyfold
+````@raw html
+---
+# https://vitepress.dev/reference/default-theme-home-page
+layout: home
 
-[![Build Status](https://github.com/HaneWall/Manyfold.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/HaneWall/Manyfold.jl/actions/workflows/CI.yml?query=branch%3Amain)
-[![Coverage](https://codecov.io/gh/HaneWall/Manyfold.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/HaneWall/Manyfold.jl)
+hero:
+  name: Manyfold
+  text: 
+  tagline: Manifold learning with Diffusion Maps in Julia
+  #image:
+  #  src: filnename
+  #  alt: filname alternative
+  actions:
+    - theme: brand
+      text: Getting started
+      link: 
+    - theme: alt
+      text: View on Github
+      link: https://github.com/HaneWall/Manyfold.jl
+---
+````
+
+Documentation for `Manyfold.jl`.
+
 ## Manifold Learning Package in Julia
 Another manifold learning package in Julia. In this package 
 we for now focus on nonlinear methods specifically the Diffusion Maps algorithm.
@@ -20,3 +40,4 @@ to ambient space
 
 ## Acknowledgements
 - package is inspired by ManifoldLearning.jl and Datafold (wonderful Python package)
+
