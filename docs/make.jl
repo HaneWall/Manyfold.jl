@@ -24,5 +24,6 @@ makedocs(;
 
 deploydocs(;
     repo="https://github.com/HaneWall/Manyfold.jl",
+    devbranch="main",
     push_preview=true,
 )
