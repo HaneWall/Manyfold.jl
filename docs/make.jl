@@ -11,7 +11,7 @@ makedocs(;
     format=DocumenterVitepress.MarkdownVitepress(
         repo = "https://github.com/HaneWall/Manyfold.jl",
         devurl = "dev",
-        deploy_url = "HaneWall.github.io/Manyfold.jl",
+        deploy_url = "https://hanewall.github.io/Manyfold.jl",
     ),
     pages=[
         "Overview" => "index.md",
@@ -23,6 +23,6 @@ makedocs(;
 )
 
 deploydocs(;
-    repo="github.com/HaneWall/Manyfold.jl",
+    repo="https://github.com/HaneWall/Manyfold.jl",
     push_preview=true,
 )
