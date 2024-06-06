@@ -24,7 +24,6 @@ makedocs(;
 
 deploydocs(;
     repo="github.com/HaneWall/Manyfold.jl",
-    devbranch="main",
     target = "build", # this is where Vitepress stores its output
     devbranch = "main",
     branch = "gh-pages",
