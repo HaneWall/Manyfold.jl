@@ -2,6 +2,9 @@
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://HaneWall.github.io/Manyfold.jl/dev/)
 [![Build Status](https://github.com/HaneWall/Manyfold.jl/actions/workflows/CI.yml/badge.svg?branch=main)](https://github.com/HaneWall/Manyfold.jl/actions/workflows/CI.yml?query=branch%3Amain)
 [![Coverage](https://codecov.io/gh/HaneWall/Manyfold.jl/branch/main/graph/badge.svg)](https://codecov.io/gh/HaneWall/Manyfold.jl)
+
+IN DEVELOPMENT, please issue bugs :)
+
 ## Manifold Learning Package in Julia
 Another manifold learning package in Julia. In this package 
 we for now focus on nonlinear methods specifically the Diffusion Maps algorithm.
