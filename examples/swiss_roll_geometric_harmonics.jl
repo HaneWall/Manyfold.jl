@@ -30,4 +30,4 @@ X_train, X_test = partition(X', 0.15, rng=rng_common)
 geom_all = fit(GeometricHarmonics, ψ_train_col, X_train, kernel_GH; d=61, alg=:eigen)
 
 
-X_pred_all = Manyfold.predict(geom_all, ψ_test_col)
+X_pred_all = Manyfold.predict(geom_all, ψ_train_col)

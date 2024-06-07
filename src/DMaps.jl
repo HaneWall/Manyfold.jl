@@ -1,16 +1,17 @@
 """
-    DiffusionMap
+    struct  DiffusionMap{T<:Real}
 
-Struct that stores various informations about the diffusion map. 
-    `d` ... number of dimensions
-    `t` ... timesteps of diffusion process
-    `α` ... exponent that handles density of data
-    `k` ... kernel function, that determines law to gain KernelMatrix
-    `K_m` ... KernelKatrix (kernelfunction applied on Data)
-    `K` ... modified Matrix to detrmine diffusion map coordinates
-    `Λs` ... Diagonal matrix of descending eigenvalues/singularvalues of `K`
-    `Vs` ... Eigenvectors column wise
-    `Map` ... DiffusionMap coordinates (column wise)
+Struct that stores various informations about the diffusion map.
+# Fields
+  - `d` : number of dimensions
+  - `t` : timesteps of diffusion process
+  - `α` : exponent that handles density of data
+  - `k` : kernel function, that determines law to gain KernelMatrix
+  - `K_m` : KernelKatrix (kernelfunction applied on Data)
+  - `K` : modified Matrix to detrmine diffusion map coordinates
+  - `Λs` :  Diagonal matrix of descending eigenvalues/singularvalues of `K`
+  - `Vs` : eigenvectors column wise
+  - `Map` : DiffusionMap coordinates (column wise)
 """
 struct DiffusionMap{T<:Real}
   d::Integer
@@ -27,8 +28,21 @@ struct DiffusionMap{T<:Real}
 end
 
 """
+    fit(::Type{DiffusionMap}, X::AbstractMatrix{<:T}, 
+        kernel::S; kwargs...) where {S <: Kernel, T <:Real}
 
+Given data set `X` we compute diffusion map coordinates with a given kernelfunction `kernel`.
+# Arguments
+  - `::Type{DiffusionMap}` : declares that we use Diffusion Maps to fit data
+  - `X` : data matrix, features represent rows, whereas columns represent different samples
+  - `kernel` : kernel function, that is used to produce kernel matrix
 
+# Keyword Arguments
+  - `α=1.0` : density of points regulator. 0.0 -> Graph Laplacian, 0.5 -> Fokker Planck, 1.0 -> Laplace Beltrami
+  - `d=2` : number of dimensions / eigenvectors that we would like to take into account (ordered by largest eigenvalues)
+  - `t=1` : timesteps of diffusion
+  - `alg=:kry_eigen` : eigen-/svdproblem solver. Options: `:eigen`, `:svd`, `:kry_eigen`, `:kry_svd`
+  - `conj=false` : if true we symmetrize the kernel matrix by proper transformation and can use svd solver
 """
 function fit(::Type{DiffusionMap}, X::AbstractMatrix{<:T}, kernel::S;
   α=1.0, d::Integer=2, t::Integer=1, alg=:kry_eigen, conj=false) where {S<:Kernel,T<:Real}
@@ -49,8 +63,16 @@ end
 
 
 """
-How can we transform out of sample observation data X_new on the
-diffusion coordinates.
+    transform(dmap::DiffusionMap, X_oos::AbstractMatrix{T}; kwargs...) where {T<:Real}
+Given out of sample data set `X_oos` we compute embedding `Y_oos`
+in the diffusion map coordinates by the Nystrom extension.
+
+# Arguments
+  - `dmap` : Diffusion map object that was created beforehand with training data
+  - `X_oos` : oout of sample data set. Rows represent features, columns represent samples.
+
+# Keyword Arguments
+  - `alg=:nystrom` : method to transform new out of sample data
 """
 function transform(dmap::DiffusionMap, X_oos::AbstractMatrix{T}; alg=:nystrom) where {T<:Real}
   if alg == :nystrom
@@ -73,26 +95,20 @@ function transform(dmap::DiffusionMap, X_oos::AbstractVector{T}; alg=:nystrom) w
 end
 
 """
-Lets say we have a new points Y_oos in the low
-dimensional latent space, how can we get X_new in the
-high dimesional ambient space?
-This is the classic ill-defined preimage problem.
-"""
+    preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T}; kwargs...)
 
-"""
-    preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T}; k=8)
-dmap ... DiffusionMap object
-Y_oos ... n out of sample points in the latent space Y_oos_i ∈ R ^ d
-d ... dimension latent space
-k ... number of nearest neighbors that we search for in the latent space.
-
-Generally speaking we search for the k nearest neighbors in the d-dimensional 
-latent space for each of the n-samples. From these k nearest neighbors we 
-can look at their respective high dimensional data in the ambient space
-
-This approach is for example used by Sandstede [https://arxiv.org/pdf/2112.15159]
-
+Solves preimage problem for out of sample data set `Y_oos` in the diffusion map coordinates
+via k-nearest neighbor approach. This approach is for example used by [Sandstede 2021](https://arxiv.org/pdf/2112.15159)
 We handle this problem by an divide and conquer approach for readibility.
+# Arguments
+  - `dmap` : Diffusion map object that was created beforehand with training data
+  - `Y_oos` : out of sample points in the latent space. Rows: Features, Cols: Samples
+
+# Keyword Arguments
+  - `k=8` : number of nearest neighbors
+  - `alg=:arithmetic` : algorithm to get higher dimensional point. Options: `:arithmetic`, `:conv_hull`
+  - `embed_dim` : If `Y_oos` is not defined on all dimensions of the diffusion map, i.e.
+    "[1 5] -> `Y_oos`" lives on first and fifth coordinate
 """
 function preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T};
   k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2]),
@@ -107,9 +123,6 @@ function preim_knn(dmap::DiffusionMap, Y_oos::AbstractMatrix{T};
 end
 
 
-"""
-preim_knn(dmap::DiffusionMap, Y_oos, k)
-"""
 function preim_knn(dmap::DiffusionMap, Y_oos::AbstractVector{T};
   k::Integer=8, embed_dim::AbstractVector{S}=collect(Integer, 1:size(dmap.Map)[2]),
   alg=:arithmetic) where {S<:Integer,T<:Real}

@@ -1,31 +1,21 @@
 """
     struct  GeometricHarmonics{T<:Real}
-using CairoMakie: project_polygon
 Is an object that allows us to jump between the ambient and latent space.
 From the "restriction" standpoint this is an alternative to the natural
 Nyström extension. From the "lifting" standpoint this is an alternative
-to the k-nearest neighbors approach.
+to the natural k-nearest neighbors approach.
+For details look up [Coifman](https://doi.org/10.1016/j.acha.2005.07.005) and [Kevrekedis](https://doi.org/10.1016/j.jcp.2023.112072).
+Direction for predictions: X --> Y
 
-We do not care about the direction here (restriction or lifting)!
-In later prediction processes we always map the following way:
-GH: F_1^(D_1 × N) --> F_2(D_2 × N), X_train |-> Y_train
-(N-samples are column wise)
-Generally speaking GeometricHarmonics were introduced by Coifman himself. 
-[https://doi.org/10.1016/j.acha.2005.07.005]
-Over the years many adaptations arised and nowadays GeometricHarmonics can also 
-be used to lift from the embedded latent space to the high dimensional ambient space 
-via so-called Latent Harmonics (double diffusion Map)
-[https://doi.org/10.1016/j.jcp.2023.112072]
-
-
-d ... dimensions of the eigenspace (usually one has to take into account many)
-X_train ... training data from the domain
-Y_train ... training data of the image(X_train)
-k ... kernel function that is used to create kernelmatrices
-K ... kernelmatrix
-Λs ... Eigenvalues of K (descending order in diagonal matrix form)
-Vs ... Eigenvectors in column wise order corresponding to Λs
-Map ... Y_train map projections on GeometricHarmonics
+# Fields
+  - `d` : dimensions of the eigenspace (usually one has to take into account many)
+  - `X_train` : training data from the domain 
+  - `Y_train` : training data of image(`X_train`)
+  - `k` : kernel function that is used to create kernelmatrices
+  - `K` : kernelmatrix
+  - `Λs` : eigenvalues of `K` in diagonal matrix (descending order)
+  - `Vs` : eigenvectors in column wise order corresponding to `Λs`
+  - `Map` :  `Y_train` projections on geometric harmonics
 """
 struct GeometricHarmonics{T<:Real}
   d::Integer
@@ -41,12 +31,23 @@ end
 
 
 """
-    fit()
+    fit(::Type{GeometricHarmonics}, 
+        X_train::AbstractMatrix{T}, 
+        Y_train::AbstractMatrix{T}, 
+        kernel::S; kwargs...) where {T<:Real}
 
-Fits a GeometricHarmonics model to interpolate a map from X_train data space to Y_train data space.
-This approach does not really care about the dimensions and can be used for Lifting and Restriction.
-However one should be careful at comparing the restriction to Nyström, since we only restrict to
-the choosen embedding but not all eigenfunctions of the diffusion map.
+Creates GeometricHarmonics object, that is oriented to map from `X_train` to `Y_train`.
+Cann be used for Lifting and Restriction.
+
+# Arguments
+  - `::Type{GeometricHarmonics}` : declares that we want to create GeometricHarmonics object
+  - `X_train` : training data from the domain
+  - `Y_train` : training data of image(`X_train`)
+  - `kernel` : kernelfunction
+
+# Keyword Arguments
+  - `d=10` : number of eigenvectors that we would like to take into account
+  - `alg=:eigen` : eigensolver backend. Options: `:eigen`, `:svd`
 """
 function fit(::Type{GeometricHarmonics}, X_train::AbstractMatrix{T}, Y_train::AbstractMatrix{T}, kernel::S;
   d::Integer=10, alg=:eigen) where {S<:Kernel,T<:Real}
@@ -58,10 +59,15 @@ function fit(::Type{GeometricHarmonics}, X_train::AbstractMatrix{T}, Y_train::Ab
 end
 
 
-""" 
+"""
     predict(GH::GeometricHarmonics, X_oos)
-Uses the learned GeometricHarmonics model to fit new out of sample data X_oos to predict 
-on Y_train living space.
+
+Uses the learned GeometricHarmonics model to fit new 
+out of sample data X_oos to predict on Y_train living space.
+
+# Arguments
+  - `GH` : already trained `GeometricHarmonics` object
+  - `X_oos` : out of sample new data set. Rows: features, Cols: samples
 """
 function predict(GH::GeometricHarmonics, X_oos::AbstractMatrix{T}) where {T<:Real}
   K_new = KernelFunctions.kernelmatrix(GH.k, ColVecs(X_oos), ColVecs(GH.X_train))
@@ -72,6 +78,7 @@ end
 """
     struct MultiScaleGeometricHarmonics
 
+WORK IN PROGRESS
 Introduction of multiscale GeometricHarmonics. General idea is to
 incorparate multiple length scales / band widths ε into our kernel.
 Therefore we get better approximations for the extension of the domain.
@@ -89,7 +96,9 @@ end
 
 """
     fit(::Type{MultiScaleGeometricHarmonics}, X_train::AbstractMatrix{T}, Y_train::AbstractMatrix{T};
-  δ::T=1e-5, ε_init::T=1.0, error::T=1e-10, l_max::Integer=7, μ::T=2.0, alg=:eigen) where {T<:Real}
+        δ::T=1e-5, ε_init::T=1.0, error::T=1e-10, l_max::Integer=7, μ::T=2.0, alg=:eigen) where {T<:Real}
+
+
 
 TBW
 """

@@ -55,7 +55,7 @@ end
 
 
 """
-    decompose_sym(K::AbstractMatrix{<:Real}, dim::Intger; skipfirst=true, alg=:kry_eigen)
+    decompose_sym(K::AbstractMatrix{<:Real}, dim::Integer; skipfirst=true, alg=:kry_eigen)
 Introduces a change of basis in order for symmetrification of the kernelmatrix `K`.
 The new matrix has the same eigenvalues
 """
